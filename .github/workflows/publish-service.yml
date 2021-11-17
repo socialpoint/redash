@@ -3,10 +3,14 @@ on:
   push:
     tags:
       - "*"
+
+permissions:
+      id-token: write
+      contents: write    # This is required for actions/checkout@v1
 jobs:
   image-tag:
     name: image-tag
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     outputs:
       tag: ${{ steps.clean-ref.outputs.tag }}
     steps:
@@ -17,10 +21,16 @@ jobs:
           echo "::set-output name=tag::${TAG}"
   build:
     name: Build docker image
-    runs-on: aws-runner
-    needs: [golangci-lint, image-tag]
+    runs-on: ubuntu-latest
+    needs: [image-tag]
     steps:
       - uses: actions/checkout@v2
+      - name: Assume role
+        uses: aws-actions/configure-aws-credentials@master
+        with:
+          aws-region: us-east-1
+          role-to-assume: arn:aws:iam::077212880246:role/k8s-github-action-redash
+          role-duration-seconds: 3600
       - name: Build image
         id: docker-build
         uses: ./.github/actions/build-image
@@ -28,3 +38,6 @@ jobs:
           registry: "077212880246.dkr.ecr.us-east-1.amazonaws.com"
           repository: "systems/redash"
           image-tag: ${{ needs.image-tag.outputs.tag }}
+
+
+
