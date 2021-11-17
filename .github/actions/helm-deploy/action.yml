@@ -1,0 +1,22 @@
+name: "Helm deploy"
+description: "Deploy helm charts to kubernetes"
+inputs:
+  namespace:
+    description: "cluster namespace to install release"
+    required: true
+  release-name:
+    description: "helm release name"
+    required: true
+  image-tag:
+    description: "image tag"
+    required: true
+runs:
+  using: "composite"
+  steps:
+    - name: Helm deploy
+      shell: bash
+      env:
+        HELM_NAMESPACE: ${{ inputs.namespace }}
+        HELM_RELEASE_NAME: ${{ inputs.release-name }}
+        IMAGE_TAG: ${{ inputs.image-tag }}
+      run: $GITHUB_ACTION_PATH/helm-deploy.sh

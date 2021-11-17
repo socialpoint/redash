@@ -1,0 +1,30 @@
+name: Publish service
+on:
+  push:
+    tags:
+      - "*"
+jobs:
+  image-tag:
+    name: image-tag
+    runs-on: self-hosted
+    outputs:
+      tag: ${{ steps.clean-ref.outputs.tag }}
+    steps:
+      - name: Clean git ref
+        id: clean-ref
+        run: |
+          TAG=${GITHUB_REF##*/}
+          echo "::set-output name=tag::${TAG}"
+  build:
+    name: Build docker image
+    runs-on: aws-runner
+    needs: [golangci-lint, image-tag]
+    steps:
+      - uses: actions/checkout@v2
+      - name: Build image
+        id: docker-build
+        uses: ./.github/actions/build-image
+        with:
+          registry: "077212880246.dkr.ecr.us-east-1.amazonaws.com"
+          repository: "systems/redash"
+          image-tag: ${{ needs.image-tag.outputs.tag }}
