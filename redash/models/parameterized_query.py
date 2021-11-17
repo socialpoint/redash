@@ -183,8 +183,11 @@ class ParameterizedQuery(object):
 
     @property
     def is_safe(self):
-        text_parameters = [param for param in self.schema if param["type"] == "text"]
-        return not any(text_parameters)
+        # text_parameters = [param for param in self.schema if param["type"] == "text"]
+        # return not any(text_parameters)
+        # Changed to be able to execute queries with a text field for view only users
+        # even we have a possible issue with query injection.
+        return True
 
     @property
     def missing_params(self):
